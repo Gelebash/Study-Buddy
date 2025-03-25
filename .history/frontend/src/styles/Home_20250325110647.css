@@ -1,0 +1,16 @@
+body, html {
+    height: 100%;
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: top;
+    background: linear-gradient(to right, #6a11cb, #2575fc);
+    font-family: 'Roboto', sans-serif;
+}
+
+div {
+    font-size: 30px;
+    color: white;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+    margin-top: 20%;
+}
