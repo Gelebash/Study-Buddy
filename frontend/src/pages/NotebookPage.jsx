@@ -1,17 +1,31 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
-import '../styles/NotebookPage.css'; // Uses updated CSS
+import '../styles/NotebookPage.css';
 import NotebookNavBar from '../components/NotebookNavBar';
+import api from "../api";
 
-// Local Storage ID Counters
-let courseIdCounter = parseInt(localStorage.getItem('notebookCourseIdCounter') || '0');
-let sectionIdCounter = parseInt(localStorage.getItem('notebookSectionIdCounter') || '0');
-let pageIdCounter = parseInt(localStorage.getItem('notebookPageIdCounter') || '0');
-const getNextCourseId = () => { const n = ++courseIdCounter; localStorage.setItem('notebookCourseIdCounter', n.toString()); return `course-${n}`; };
-const getNextSectionId = () => { const n = ++sectionIdCounter; localStorage.setItem('notebookSectionIdCounter', n.toString()); return `sec-${n}`; };
-const getNextPageId = () => { const n = ++pageIdCounter; localStorage.setItem('notebookPageIdCounter', n.toString()); return `page-${n}`; };
+// API functions
+const notebookApi = {
+    getCourses: () => api.get('/api/courses/'),
+    createCourse: (name) => {
+        console.log('Creating course with data:', { name });
+        return api.post('/api/courses/', { name });
+    },
+    updateCourse: (id, name) => api.patch(`/api/courses/${id}/`, { name }),
+    deleteCourse: (id) => api.delete(`/api/courses/${id}/`),
+
+    getSections: () => api.get('/api/sections/'),
+    createSection: (courseId, name) => api.post('/api/sections/', { course: courseId, name }),
+    updateSection: (id, name) => api.patch(`/api/sections/${id}/`, { name }),
+    deleteSection: (id) => api.delete(`/api/sections/${id}/`),
+
+    getPages: () => api.get('/api/pages/'),
+    createPage: (sectionId, title, content = '') => 
+        api.post('/api/pages/', { section: sectionId, title, content }),
+    updatePage: (id, data) => api.patch(`/api/pages/${id}/`, data),
+    deletePage: (id) => api.delete(`/api/pages/${id}/`),
+};
 
 function NotebookPage() {
-    // --- State ---
     const [courses, setCourses] = useState([]);
     const [activeCourseId, setActiveCourseId] = useState(null);
     const [activeSectionId, setActiveSectionId] = useState(null);
@@ -20,213 +34,358 @@ function NotebookPage() {
     const [error, setError] = useState("");
     const [isLoading, setIsLoading] = useState(true);
     const [editingItem, setEditingItem] = useState(null);
-    const [editInputValue, setEditInputValue] = useState(''); // Value for sidebar edits
+    const [editInputValue, setEditInputValue] = useState('');
     const [isEditingPageTitle, setIsEditingPageTitle] = useState(false);
-    const [editPageTitleValue, setEditPageTitleValue] = useState(''); // Value for main title edit
+    const [editPageTitleValue, setEditPageTitleValue] = useState('');
 
     const editorRef = useRef(null);
-    const sidebarInputRef = useRef(null); // For course/section/page name edit inputs
-    const pageTitleInputRef = useRef(null); // For main page title edit input
+    const sidebarInputRef = useRef(null);
+    const pageTitleInputRef = useRef(null);
 
-    // Effects
-    // Load initial data from localStorage
     useEffect(() => {
-        setIsLoading(true); setError("");
+        const loadData = async () => {
+            setIsLoading(true);
+            setError("");
+            try {
+                const [coursesRes, sectionsRes, pagesRes] = await Promise.all([
+                    notebookApi.getCourses(),
+                    notebookApi.getSections(),
+                    notebookApi.getPages()
+                ]);
+
+                const coursesData = coursesRes.data.map(course => ({
+                    ...course,
+                    sections: sectionsRes.data
+                        .filter(section => section.course === course.id)
+                        .map(section => ({
+                            ...section,
+                            pages: pagesRes.data
+                                .filter(page => page.section === section.id)
+                        }))
+                }));
+                
+                setCourses(coursesData);
+                
+                if (coursesData.length > 0) {
+                    setActiveCourseId(coursesData[0].id);
+                    if (coursesData[0].sections.length > 0) {
+                        setActiveSectionId(coursesData[0].sections[0].id);
+                        if (coursesData[0].sections[0].pages.length > 0) {
+                            setActivePageId(coursesData[0].sections[0].pages[0].id);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.error("Notebook Load Error:", e);
+                setError("Failed to load notebook data");
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        loadData();
+    }, []);
+
+    const handleAddCourse = useCallback(async () => {
+        const name = prompt("Course name:", "");
+        if (!name) return;
+        
         try {
-            const data = localStorage.getItem('notebookDataV2'); let parsed = data ? JSON.parse(data) : [];
-            if (!Array.isArray(parsed)) { parsed = []; localStorage.removeItem('notebookDataV2'); }
-            
-            parsed=parsed.filter(c=>c?.id&&c?.name&&Array.isArray(c?.sections)).map(c=>({...c,sections:(c.sections||[]).filter(s=>s?.id&&s?.name&&Array.isArray(s?.pages)).map(s=>({...s,pages:(s.pages||[]).filter(p=>p?.id&&p?.title)}) )}));
-            setCourses(parsed);
-            // Validate and set active IDs
-            let iCrs=localStorage.getItem('notebookActiveCourseId')||null; let iSec=localStorage.getItem('notebookActiveSectionId')||null; let iPag=localStorage.getItem('notebookActivePageId')||null;
-            const crsEx=parsed.some(c=>c.id===iCrs); if(!crsEx)iCrs=null;
-            const selCrs=crsEx?parsed.find(c=>c.id===iCrs):null;
-            const secEx=selCrs?.sections.some(s=>s.id===iSec); if(!secEx)iSec=null;
-            const selSec=secEx?selCrs.sections.find(s=>s.id===iSec):null;
-            const pagEx=selSec?.pages.some(p=>p.id===iPag); if(!pagEx)iPag=null;
-            if(!iCrs&&parsed.length>0)iCrs=parsed[0].id;
-            const finSelCrs=parsed.find(c=>c.id===iCrs);
-            if(!iSec&&finSelCrs?.sections.length>0)iSec=finSelCrs.sections[0].id;
-            const finSelSec=finSelCrs?.sections.find(s=>s.id===iSec);
-            if(!iPag&&finSelSec?.pages.length>0)iPag=finSelSec.pages[0].id;
-            setActiveCourseId(iCrs); setActiveSectionId(iSec); setActivePageId(iPag);
-        } catch(e){ console.error("Ntbk Load Error:", e); setError("Load failed."); setCourses([]); localStorage.removeItem('notebookDataV2');}
-        finally { setIsLoading(false); }
-        document.body.classList.add('notebook-body'); const timerId=setInterval(()=>setCurrentTime(new Date()),60000); return()=>{document.body.classList.remove('notebook-body'); clearInterval(timerId);};
-    },[]);
+            // Log the request
+            console.log('Sending course creation request:', { name: name.trim() });
+            const response = await notebookApi.createCourse(name.trim());
+            console.log('Course creation response:', response);
+            setCourses(prev => [...prev, { ...response.data, sections: [] }]);
+            setActiveCourseId(response.data.id);
+            setError("");
+        } catch (e) {
+            console.error('Course creation error:', e.response?.data || e);
+            setError("Failed to create course: " + (e.response?.data?.detail || e.message));
+        }
+    }, []);
 
-    // Persist state to localStorage whenever it changes
-    useEffect(() => { if(!isLoading)try{localStorage.setItem('notebookDataV2',JSON.stringify(courses));}catch(e){setError("Save failed.");}},[courses,isLoading]);
-    useEffect(() => { if(!isLoading){if(activeCourseId)localStorage.setItem('notebookActiveCourseId',activeCourseId);else localStorage.removeItem('notebookActiveCourseId');}},[activeCourseId,isLoading]);
-    useEffect(() => { if(!isLoading){if(activeSectionId)localStorage.setItem('notebookActiveSectionId',activeSectionId);else localStorage.removeItem('notebookActiveSectionId');}},[activeSectionId,isLoading]);
-    useEffect(() => { if(!isLoading){if(activePageId)localStorage.setItem('notebookActivePageId',activePageId);else localStorage.removeItem('notebookActivePageId');}},[activePageId,isLoading]);
+    const handleAddSection = useCallback(async () => {
+        if (!activeCourseId) {
+            setError("Select a course first.");
+            return;
+        }
+        const name = prompt("Section name:", "");
+        if (!name) return;
 
-    // Auto-selection effects (handle cascade selection)
-    useEffect(()=>{ if(isLoading||editingItem)return;const ac=courses.find(c=>c.id===activeCourseId);if(ac&&ac.sections.length>0){const se=ac.sections.some(s=>s.id===activeSectionId);if(!se)setActiveSectionId(ac.sections[0].id);}else if(activeSectionId!==null)setActiveSectionId(null);},[activeCourseId,courses,isLoading,activeSectionId,editingItem]);
-    useEffect(()=>{ if(isLoading||editingItem||!activeSectionId){if(activePageId!==null&&!editingItem)setActivePageId(null);return;}const ac=courses.find(c=>c.id===activeCourseId);const as=ac?.sections.find(s=>s.id===activeSectionId);if(as&&as.pages.length>0){const pe=as.pages.some(p=>p.id===activePageId);if(!pe)setActivePageId(as.pages[0].id);}else if(activePageId!==null)setActivePageId(null);},[activeSectionId,courses,isLoading,activeCourseId,activePageId,editingItem]);
+        try {
+            const response = await notebookApi.createSection(activeCourseId, name.trim());
+            setCourses(prev => prev.map(course =>
+                course.id === activeCourseId
+                    ? { ...course, sections: [...course.sections, { ...response.data, pages: [] }] }
+                    : course
+            ));
+            setActiveSectionId(response.data.id);
+            setError("");
+        } catch (e) {
+            setError("Failed to create section");
+        }
+    }, [activeCourseId]);
 
-    // Focus Effects
-    useEffect(()=>{ if(editingItem&&sidebarInputRef.current)sidebarInputRef.current.focus();},[editingItem]);
-    useEffect(()=>{ if(isEditingPageTitle&&pageTitleInputRef.current)pageTitleInputRef.current.focus();},[isEditingPageTitle]);
+    const handleAddPage = useCallback(async () => {
+        if (!activeSectionId || !activeCourseId) {
+            setError("Select a course and section first.");
+            return;
+        }
+        const title = prompt("Page title:", "Untitled");
+        if (!title) return;
 
-    //  Derived Data 
-    const activeCourse = useMemo(() => courses.find(c => c.id === activeCourseId), [courses, activeCourseId]);
-    const activeSections = useMemo(() => activeCourse?.sections || [], [activeCourse]);
-    const activeSection = useMemo(() => activeSections.find(s => s.id === activeSectionId), [activeSections, activeSectionId]);
-    const activePages = useMemo(() => activeSection?.pages || [], [activeSection]);
-    const activePage = useMemo(() => activePages.find(p => p.id === activePageId), [activePages, activePageId]);
+        try {
+            const response = await notebookApi.createPage(activeSectionId, title.trim());
+            setCourses(prev => prev.map(course =>
+                course.id === activeCourseId
+                    ? {
+                        ...course,
+                        sections: course.sections.map(section =>
+                            section.id === activeSectionId
+                                ? { ...section, pages: [...section.pages, response.data] }
+                                : section
+                        )
+                    }
+                    : course
+            ));
+            setActivePageId(response.data.id);
+            setError("");
+            setTimeout(() => editorRef.current?.focus(), 50);
+        } catch (e) {
+            setError("Failed to create page");
+        }
+    }, [activeCourseId, activeSectionId]);
 
-    //  Handlers 
-    // Selectors (Prevent selection during edit)
-    const selectCourse = useCallback((id)=>{if(editingItem||isEditingPageTitle)return;setActiveCourseId(id);setError("");},[editingItem, isEditingPageTitle]);
-    const selectSection = useCallback((id)=>{if(editingItem||isEditingPageTitle)return;setActiveSectionId(id);setError("");},[editingItem, isEditingPageTitle]);
-    const selectPage = useCallback((id)=>{if(editingItem||isEditingPageTitle)return;setActivePageId(id);setError("");},[editingItem, isEditingPageTitle]);
+    const handleDeleteCourse = useCallback(async (id, e) => {
+        e.stopPropagation();
+        if (!window.confirm("Delete course & ALL content?")) return;
+        
+        try {
+            await notebookApi.deleteCourse(id);
+            setCourses(prev => prev.filter(c => c.id !== id));
+            if (activeCourseId === id) {
+                setActiveCourseId(null);
+                setActiveSectionId(null);
+                setActivePageId(null);
+            }
+        } catch (e) {
+            setError("Failed to delete course");
+        }
+    }, [activeCourseId]);
 
-    // Adders 
-    const handleAddCourse=useCallback(()=>{ const n=prompt("C:","");if(n===null)return;const t=n.trim();if(!t){setError("Name?");return;}const nc={id:getNextCourseId(),name:t,sections:[]};setCourses(p=>[...p,nc]);setActiveCourseId(nc.id);setError("");},[]);
-    const handleAddSection=useCallback(()=>{ if(!activeCourseId){setError("Select C."); return;}const n=prompt("S:",""); if(n===null)return; const t=n.trim(); if(!t){setError("Name?");return;}const ns={id:getNextSectionId(),name:t,pages:[]}; setCourses(pC=>pC.map(c=>c.id===activeCourseId?{...c,sections:[...c.sections,ns]}:c));setActiveSectionId(ns.id);setError("");}, [activeCourseId]);
-    const handleAddPage=useCallback(()=>{ if(!activeSectionId||!activeCourseId){setError("Select C&S."); return;} const t=prompt("P:","U"); if(t===null)return; const tr=t.trim()||"Untitled"; const np={id:getNextPageId(), title:tr, content:""}; setCourses(pC=>pC.map(c=>c.id===activeCourseId?{...c,sections:c.sections.map(s=>s.id===activeSectionId?{...s, pages:[...s.pages, np]}:s)}:c)); setActivePageId(np.id); setError(""); setTimeout(()=>editorRef.current?.focus(),50);},[activeCourseId, activeSectionId]);
+    const handleDeleteSection = useCallback(async (id, e) => {
+        e.stopPropagation();
+        if (!window.confirm("Delete section & ALL its pages?")) return;
+        
+        try {
+            await notebookApi.deleteSection(id);
+            setCourses(prev => prev.map(course => ({
+                ...course,
+                sections: course.sections.filter(s => s.id !== id)
+            })));
+            if (activeSectionId === id) {
+                setActiveSectionId(null);
+                setActivePageId(null);
+            }
+        } catch (e) {
+            setError("Failed to delete section");
+        }
+    }, [activeSectionId]);
 
-    // Editor Change
-    const handlePageContentChange=useCallback((e)=>{ if(!activePageId||!activeSectionId||!activeCourseId)return; const nc=e.target.value; setCourses(pC=>pC.map(c=>c.id===activeCourseId?{...c,sections:c.sections.map(s=>s.id===activeSectionId?{...s,pages:s.pages.map(p=>p.id===activePageId?{...p,content:nc}:p)}:s)}:c));},[activeCourseId,activeSectionId,activePageId]);
+    const handleDeletePage = useCallback(async (id, e) => {
+        e.stopPropagation();
+        if (!window.confirm("Delete this page?")) return;
+        
+        try {
+            await notebookApi.deletePage(id);
+            setCourses(prev => prev.map(course => ({
+                ...course,
+                sections: course.sections.map(section => ({
+                    ...section,
+                    pages: section.pages.filter(p => p.id !== id)
+                }))
+            })));
+            if (activePageId === id) {
+                setActivePageId(null);
+            }
+        } catch (e) {
+            setError("Failed to delete page");
+        }
+    }, [activePageId]);
 
-    // Edit: Start
-    const handleStartEdit=useCallback((type,id,currentName,event)=>{ event.stopPropagation(); setEditingItem({type,id}); setEditInputValue(currentName); setError(""); setIsEditingPageTitle(false); },[]);
-    const handleStartEditTitle=useCallback(()=>{if(!activePage||editingItem)return; setEditPageTitleValue(activePage.title);setIsEditingPageTitle(true);setEditingItem(null);setError("");},[activePage, editingItem]);
-    // Edit: Input Changes
-    const handleEditInputChange=(e)=>setEditInputValue(e.target.value);
-    const handleEditPageTitleChange=(e)=>setEditPageTitleValue(e.target.value);
-    // Edit: Save
-    const saveEdit=useCallback(()=>{
-        if(!editingItem && !isEditingPageTitle) return;
-        let newValue, targetType, targetId;
+    const handlePageContentChange = useCallback(async (e) => {
+        if (!activePageId) return;
+        
+        const newContent = e.target.value;
+        try {
+            await notebookApi.updatePage(activePageId, { content: newContent });
+            setCourses(prev => prev.map(course => ({
+                ...course,
+                sections: course.sections.map(section => ({
+                    ...section,
+                    pages: section.pages.map(page =>
+                        page.id === activePageId
+                            ? { ...page, content: newContent }
+                            : page
+                    )
+                }))
+            })));
+        } catch (e) {
+            setError("Failed to save changes");
+        }
+    }, [activePageId]);
 
-        if(isEditingPageTitle){ newValue = editPageTitleValue.trim(); targetType = 'page_title'; targetId = activePageId; }
-        else{ newValue = editInputValue.trim(); targetType = editingItem.type; targetId = editingItem.id; }
+    const handleSectionClick = useCallback((sectionId) => {
+        setActiveSectionId(sectionId);
+        const section = courses
+            .find(c => c.id === activeCourseId)
+            ?.sections.find(s => s.id === sectionId);
+        if (section?.pages.length > 0) {
+            setActivePageId(section.pages[0].id);
+        } else {
+            setActivePageId(null);
+        }
+    }, [activeCourseId, courses]);
 
-        if(!newValue){setError(`${targetType.replace('_', ' ')} name cannot be empty.`);return;}
-        if(newValue.length > 100){setError(`${targetType} name too long.`); return;}
+    const handlePageClick = useCallback((pageId) => {
+        setActivePageId(pageId);
+    }, []);
 
-        // CORE LOGIC FOR UPDATING NESTED STATE 
-        setCourses(prevCourses => prevCourses.map(course => {
-            if (targetType === 'course' && course.id === targetId) return { ...course, name: newValue }; // Update course name
-            if (course.id === activeCourseId) { // Is this the course containing the item to update?
-                return { ...course, sections: course.sections.map(section => { // Map through sections of the active course
-                        if (targetType === 'section' && section.id === targetId) return { ...section, name: newValue }; // Update section name
-                        if (section.id === activeSectionId && (targetType === 'page' || targetType === 'page_title')) { 
-                            return { ...section, pages: section.pages.map(page => // Map through pages of the active section
-                                page.id === targetId ? { ...page, title: newValue } : page // Update the target page's title
-                            )};
-                        } return section; // Return other sections in this course unchanged
-                    })
-                };
-            } return course; // Return other courses unchanged
-        }));
-        // 
+    const formattedDateTime = useMemo(() => {
+        try {
+            const dO = { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' };
+            const tO = { hour: 'numeric', minute: '2-digit', hour12: true };
+            return `${currentTime.toLocaleDateString('en-US', dO)}  ${currentTime.toLocaleTimeString('en-US', tO)}`;
+        } catch {
+            return "Loading Date...";
+        }
+    }, [currentTime]);
 
-        setEditingItem(null); setEditInputValue(""); setIsEditingPageTitle(false); setEditPageTitleValue(""); setError("");
-    }, [editingItem, isEditingPageTitle, editInputValue, editPageTitleValue, activeCourseId, activeSectionId, activePageId]); // Dependencies needed
-
-    // Edit: Cancel
-    const cancelEdit=useCallback(()=>{setEditingItem(null);setEditInputValue("");setIsEditingPageTitle(false);setEditPageTitleValue("");setError("");},[]);
-    // Edit: Keyboard handling
-    const handleInputKeyDown=useCallback((e)=>{if(e.key==='Enter'){e.preventDefault();saveEdit();}else if(e.key==='Escape'){cancelEdit();}},[saveEdit,cancelEdit]);
-
-    // Delete Handlers
-    const handleDeleteCourse=useCallback((id,e)=>{e.stopPropagation();if(window.confirm("Delete course & ALL content?")){setCourses(p=>p.filter(c=>c.id!==id));if(activeCourseId===id){setActiveCourseId(null);setActiveSectionId(null);setActivePageId(null);}setError("");}},[activeCourseId]);
-    const handleDeleteSection=useCallback((id,e)=>{e.stopPropagation();if(window.confirm("Delete section & ALL pages?")){if(!activeCourseId)return;setCourses(pC=>pC.map(c=>c.id===activeCourseId?{...c,sections:c.sections.filter(s=>s.id!==id)}:c));if(activeSectionId===id){setActiveSectionId(null);setActivePageId(null);}setError("");}},[activeCourseId,activeSectionId]);
-    const handleDeletePage=useCallback((id,e)=>{e.stopPropagation();if(window.confirm("Delete page?")){if(!activeSectionId||!activeCourseId)return;setCourses(pC=>pC.map(c=>c.id===activeCourseId?{...c,sections:c.sections.map(s=>s.id===activeSectionId?{...s,pages:s.pages.filter(p=>p.id!==id)}:s)}:c));if(activePageId===id){setActivePageId(null);}setError("");}},[activeCourseId,activeSectionId,activePageId]);
-
-
-    // Date Formatting Memo
-    const formattedDateTime=useMemo(() => { try {const dO={weekday:'long',month:'long',day:'numeric',year:'numeric'}; const tO={hour:'numeric',minute:'2-digit',hour12:true}; return `${currentTime.toLocaleDateString('en-US',dO)}  ${currentTime.toLocaleTimeString('en-US',tO)}`;}catch{return "Loading Date...";}},[currentTime]);
-
-    //Main Render Function ---
     const renderNotebookContent = () => {
-        if (isLoading) return <div className="notebook-loading">Loading Notebook...</div>;
+        const activeCourse = courses.find(c => c.id === activeCourseId);
+        const activeSection = activeCourse?.sections.find(s => s.id === activeSectionId);
+        const activePage = activeSection?.pages.find(p => p.id === activePageId);
 
         return (
-             <div className="notebook-layout">
-                 {/* Column 1: Courses */}
-                 <div className="notebook-column courses-column">
-                     <button onClick={handleAddCourse} className="notebook-add-button">+ Add Course</button>
-                     <ul className="notebook-list courses-list">
+            <div className="notebook-layout">
+                {/* Courses Column */}
+                <div className="notebook-column courses-column">
+                    <button onClick={handleAddCourse} className="notebook-add-button">
+                        + Add Course
+                    </button>
+                    <ul className="notebook-list">
                         {courses.map(course => (
-                            <li key={course.id} className={`notebook-list-item has-controls ${course.id===activeCourseId?'active':''} ${editingItem?.type==='course'&&editingItem?.id===course.id?'editing':''}`} onClick={()=>!(editingItem?.type==='course'&&editingItem?.id===course.id)&&selectCourse(course.id)} title={course.name}>
-                                {editingItem?.type === 'course' && editingItem?.id === course.id ?
-                                     <input ref={sidebarInputRef} type="text" value={editInputValue} onChange={handleEditInputChange} onKeyDown={handleInputKeyDown} onBlur={saveEdit} className="list-item-edit-input" aria-label="Edit Course Name"/> :
-                                     <span className="item-text" onDoubleClick={(e)=>handleStartEdit('course',course.id,course.name,e)}>{course.name}</span>
-                                }
+                            <li
+                                key={course.id}
+                                onClick={() => setActiveCourseId(course.id)}
+                                className={`notebook-list-item ${course.id === activeCourseId ? 'active' : ''}`}
+                            >
+                                <span className="item-text">{course.name}</span>
                                 <div className="item-controls">
-                                    <button onClick={(e)=>handleStartEdit('course',course.id,course.name,e)} className="edit-item-button" title="Rename Course">✏️</button>
-                                    <button onClick={(e)=>handleDeleteCourse(course.id,e)} className="delete-button" title="Delete Course">×</button>
-                                </div>
-                             </li>
-                         ))}
-                         {courses.length === 0 && <li className="list-placeholder">Add Course</li>}
-                     </ul>
-                 </div>
-                 {/* Column 2: Sections */}
-                <div className="notebook-column sections-column">
-                     <button onClick={handleAddSection} className="notebook-add-button" disabled={!activeCourseId}>+ Add Section</button>
-                    <ul className="notebook-list sections-list">
-                         {activeSections.map(section => (
-                            <li key={section.id} className={`notebook-list-item has-controls ${section.id===activeSectionId?'active':''} ${editingItem?.type==='section'&&editingItem?.id===section.id?'editing':''}`} onClick={()=>!(editingItem?.type==='section'&&editingItem?.id===section.id)&&selectSection(section.id)} title={section.name}>
-                                 {editingItem?.type === 'section' && editingItem?.id === section.id ?
-                                    <input ref={sidebarInputRef} type="text" value={editInputValue} onChange={handleEditInputChange} onKeyDown={handleInputKeyDown} onBlur={saveEdit} className="list-item-edit-input" aria-label="Edit Section Name"/> :
-                                    <span className="item-text" onDoubleClick={(e)=>handleStartEdit('section',section.id,section.name,e)}>{section.name}</span>
-                                 }
-                                <div className="item-controls">
-                                     <button onClick={(e)=>handleStartEdit('section',section.id,section.name,e)} className="edit-item-button" title="Rename Section">✏️</button>
-                                     <button onClick={(e)=>handleDeleteSection(section.id,e)} className="delete-button" title="Delete Section">×</button>
-                                </div>
-                             </li>
-                        ))}
-                        {activeCourseId && activeSections.length===0 && <li className="list-placeholder">Add Section</li>}
-                        {!activeCourseId && <li className="list-placeholder">Select Course</li>}
-                    </ul>
-                 </div>
-                 {/* Column 3: Pages */}
-                <div className="notebook-column pages-column">
-                    <button onClick={handleAddPage} className="notebook-add-button" disabled={!activeSectionId}>+ Add Page</button>
-                     <ul className="notebook-list pages-list">
-                        {activePages.map(page => (
-                           <li key={page.id} className={`notebook-list-item has-controls ${page.id===activePageId?'active':''} ${editingItem?.type==='page'&&editingItem?.id===page.id?'editing':''}`} onClick={()=>!(editingItem?.type==='page'&&editingItem?.id===page.id)&&selectPage(page.id)} title={page.title}>
-                                {editingItem?.type === 'page' && editingItem?.id === page.id ?
-                                     <input ref={sidebarInputRef} type="text" value={editInputValue} onChange={handleEditInputChange} onKeyDown={handleInputKeyDown} onBlur={saveEdit} className="list-item-edit-input" aria-label="Edit Page Title"/> :
-                                     <span className="item-text" onDoubleClick={(e)=>handleStartEdit('page',page.id,page.title,e)}>{page.title}</span>
-                                }
-                                <div className="item-controls">
-                                     <button onClick={(e)=>handleStartEdit('page',page.id,page.title,e)} className="edit-item-button" title="Rename Page">✏️</button>
-                                     <button onClick={(e)=>handleDeletePage(page.id,e)} className="delete-button" title="Delete Page">×</button>
+                                    <button
+                                        onClick={(e) => handleDeleteCourse(course.id, e)}
+                                        className="delete-button"
+                                    >×</button>
                                 </div>
                             </li>
                         ))}
-                        {activeSectionId && activePages.length===0 && <li className="list-placeholder">Add Page</li>}
-                         {!activeSectionId && <li className="list-placeholder">Select Section</li>}
-                     </ul>
+                    </ul>
                 </div>
-                 {/* Column 4: Content Editor */}
-                <div className="notebook-column content-column">
-                    <div className="content-header"><span className="current-datetime">{formattedDateTime}</span></div>
-                     {activePage ? (
-                         <div className="content-editor-area">
-                             {isEditingPageTitle?(<input ref={pageTitleInputRef}type="text"value={editPageTitleValue}onChange={handleEditPageTitleChange}onKeyDown={handleInputKeyDown}onBlur={saveEdit}className="page-title-edit-input"/>):(<h2 className="page-title-header"onDoubleClick={handleStartEditTitle}title="Double-click to edit title">{activePage.title}</h2>)}
-                             <textarea ref={editorRef}className="content-textarea"value={activePage.content || ""} onChange={handlePageContentChange}placeholder="Start typing..."aria-label="Note Content"/>
-                         </div>
-                    ) : ( <div className="content-placeholder">{!activeCourseId?"Select or Add Course":!activeSectionId?"Select or Add Section":"Select or Add Page"}</div> )}
-                 </div>
-             </div>
-        );
-     };
 
-     return (
+                {/* Sections Column */}
+                <div className="notebook-column sections-column">
+                    <button 
+                        onClick={handleAddSection}
+                        className="notebook-add-button"
+                        disabled={!activeCourseId}
+                    >
+                        + Add Section
+                    </button>
+                    <ul className="notebook-list">
+                        {activeCourse?.sections.map(section => (
+                            <li
+                                key={section.id}
+                                onClick={() => handleSectionClick(section.id)}
+                                className={`notebook-list-item ${section.id === activeSectionId ? 'active' : ''}`}
+                            >
+                                <span className="item-text">{section.name}</span>
+                                <div className="item-controls">
+                                    <button
+                                        onClick={(e) => handleDeleteSection(section.id, e)}
+                                        className="delete-button"
+                                    >×</button>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+
+                {/* Pages Column */}
+                <div className="notebook-column pages-column">
+                    <button 
+                        onClick={handleAddPage}
+                        className="notebook-add-button"
+                        disabled={!activeSectionId}
+                    >
+                        + Add Page
+                    </button>
+                    <ul className="notebook-list">
+                        {activeSection?.pages.map(page => (
+                            <li
+                                key={page.id}
+                                onClick={() => handlePageClick(page.id)}
+                                className={`notebook-list-item ${page.id === activePageId ? 'active' : ''}`}
+                            >
+                                <span className="item-text">{page.title}</span>
+                                <div className="item-controls">
+                                    <button
+                                        onClick={(e) => handleDeletePage(page.id, e)}
+                                        className="delete-button"
+                                    >×</button>
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+
+                {/* Content Column */}
+                <div className="notebook-column content-column">
+                    {activePage ? (
+                        <>
+                            <div className="content-header">
+                                <span className="current-datetime">
+                                    Last modified: {new Date(activePage.created_at).toLocaleString()}
+                                </span>
+                            </div>
+                            <div className="content-editor-area">
+                                <h1 className="page-title-header">{activePage.title}</h1>
+                                <textarea
+                                    ref={editorRef}
+                                    className="content-textarea"
+                                    value={activePage.content}
+                                    onChange={handlePageContentChange}
+                                    placeholder="Start typing..."
+                                />
+                            </div>
+                        </>
+                    ) : (
+                        <div className="content-placeholder">
+                            {!activeCourseId ? "Select a course" :
+                             !activeSectionId ? "Select a section" :
+                             "Select or create a page"}
+                        </div>
+                    )}
+                </div>
+            </div>
+        );
+    };
+
+    return (
         <>
             <NotebookNavBar />
             <div className="notebook-page-container page-content">
-                 {renderNotebookContent()}
-                 {!isLoading && error && <p className="notebook-error bottom-error">{error}</p>}
+                {renderNotebookContent()}
+                {!isLoading && error && <p className="notebook-error bottom-error">{error}</p>}
             </div>
         </>
     );

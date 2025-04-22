@@ -1,10 +1,11 @@
 from django.contrib.auth.models import User
-from rest_framework import generics, status
+from rest_framework import generics, status, permissions
 from rest_framework.response import Response
-from .serializers import UserSerializer, NoteSerializer, BuddySerializer
+from .serializers import UserSerializer, NoteSerializer, BuddySerializer, CourseSerializer, SectionSerializer, PageSerializer
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import Note, Buddy
-from datetime import datetime
+from .models import Note, Buddy, Course, Section, Page
+from datetime import datetime, timedelta
+from django.utils import timezone
 from rest_framework.views import APIView
 
 class NoteListCreateView(generics.ListCreateAPIView):
@@ -63,14 +64,25 @@ class BuddyDetailView(generics.RetrieveUpdateAPIView):
     permission_classes = [IsAuthenticated]
 
     def get_object(self):
-        return self.request.user.buddy
+        buddy = self.request.user.buddy
+        return buddy
 
 class BuddyListCreateView(generics.ListCreateAPIView):
     serializer_class = BuddySerializer
     permission_classes = [IsAuthenticated]
 
     def get_queryset(self):
-        return Buddy.objects.filter(user=self.request.user)
+        buddies = Buddy.objects.filter(user=self.request.user)
+        now = timezone.now()
+        for buddy in buddies:
+            elapsed = now - buddy.last_session
+            intervals = int(elapsed.total_seconds() // (15 * 60))  # Use 2 for testing, 15*60 for production
+            if intervals > 0:
+                decrease = min(buddy.petHappiness, intervals)
+                buddy.petHappiness = max(0, buddy.petHappiness - decrease)
+                buddy.last_session = now
+                buddy.save()
+        return buddies
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -96,3 +108,50 @@ class BuddyUpdateView(APIView):
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         except Buddy.DoesNotExist:
             return Response({"error": "Buddy not found"}, status=status.HTTP_404_NOT_FOUND)
+
+class CourseListCreateView(generics.ListCreateAPIView):
+    serializer_class = CourseSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Course.objects.filter(user=self.request.user)
+
+    def perform_create(self, serializer):
+        serializer.save(user=self.request.user)
+
+class CourseDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = CourseSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Course.objects.filter(user=self.request.user)
+
+class SectionListCreateView(generics.ListCreateAPIView):
+    serializer_class = SectionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Only sections belonging to courses owned by the user
+        return Section.objects.filter(course__user=self.request.user)
+
+class SectionDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = SectionSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Section.objects.filter(course__user=self.request.user)
+
+class PageListCreateView(generics.ListCreateAPIView):
+    serializer_class = PageSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        # Only pages belonging to sections of courses owned by the user
+        return Page.objects.filter(section__course__user=self.request.user)
+
+class PageDetailView(generics.RetrieveUpdateDestroyAPIView):
+    serializer_class = PageSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        return Page.objects.filter(section__course__user=self.request.user)

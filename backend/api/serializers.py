@@ -1,6 +1,6 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Note, Buddy
+from .models import Note, Buddy, Course, Section, Page
 
 class BuddySerializer(serializers.ModelSerializer):
     class Meta:
@@ -34,3 +34,21 @@ class NoteSerializer(serializers.ModelSerializer):
         fields = ['id', 'title', 'back', 'type', 'created_at', 'author']  # Remove front
         # Read only allows author to be determined, but set at beginning.
         extra_kwargs = {'author': {'read_only': True}}
+
+class PageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Page
+        fields = ['id', 'title', 'section', 'content', 'created_at']
+        read_only_fields = ['created_at']
+
+class SectionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Section
+        fields = ['id', 'name', 'course', 'created_at']
+        read_only_fields = ['created_at']
+
+class CourseSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Course
+        fields = ['id', 'name', 'user', 'created_at']
+        read_only_fields = ['user', 'created_at']
