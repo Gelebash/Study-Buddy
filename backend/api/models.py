@@ -13,3 +13,18 @@ class Note(models.Model):
 
     def __str__(self):
         return self.title
+
+class Buddy(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='buddy')
+    favoritePet = models.CharField(max_length=50, blank=True, null=True)
+    firstName = models.CharField(max_length=100, blank=True, null=True)
+    middleName = models.CharField(max_length=100, blank=True, null=True)
+    lastName = models.CharField(max_length=100, blank=True, null=True)
+    stateName = models.CharField(max_length=100, blank=True, null=True)
+    countryName = models.CharField(max_length=100, blank=True, null=True)
+    petHappiness = models.IntegerField(default=50)
+    petBirthDate = models.DateField(null=True, blank=True)
+    petIdNumber = models.CharField(max_length=100, blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s Buddy"

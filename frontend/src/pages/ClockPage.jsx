@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import '../styles/ClockPage.css'; 
 import ClockNavBar from '../components/ClockNavBar';
+import api from '../api';
 
 // Constants 
 const LS_KEYS = {
@@ -88,6 +89,19 @@ function ClockPage() {
         try {
             document.body.classList.add('clock-body');
 
+            // Fetch initial happiness from backend
+            const fetchHappiness = async () => {
+                try {
+                    const response = await api.get('/api/buddy/');
+                    if (response.data.length > 0) {
+                        setPetHappiness(response.data[0].petHappiness);
+                    }
+                } catch (error) {
+                    console.error("Error fetching pet happiness:", error);
+                }
+            };
+            fetchHappiness();
+
             // Load timer specific state
             const storedIsActive = localStorage.getItem(LS_KEYS.IS_ACTIVE) === 'true';
             const storedStartTime = parseInt(localStorage.getItem(LS_KEYS.START_TIME) || '0', 10);
@@ -111,22 +125,16 @@ function ClockPage() {
             }
 
              //  Daily Reset Check & Global State Loading 
-            let currentHappiness = parseInt(localStorage.getItem(GLOBAL_LS_KEYS.PET_HAPPINESS) || '0', 10);
             let currentTotalStudied = parseInt(localStorage.getItem(GLOBAL_LS_KEYS.TOTAL_STUDIED) || '0', 10);
-             let currentHappinessBaseline = storedHappinessBaseline; // Use value loaded above
 
              try {
                 const todayET = getCurrentDateInET();
                 const lastResetCheckET = localStorage.getItem(GLOBAL_LS_KEYS.LAST_RESET_CHECK);
                  if (lastResetCheckET !== todayET) {
                      console.log("ClockPage Init: New day detected, resetting persisted states.");
-                     currentHappiness = 0;
                      currentTotalStudied = 0;
-                     currentHappinessBaseline = 0.0; // Reset happiness calc baseline
-                     localStorage.setItem(GLOBAL_LS_KEYS.PET_HAPPINESS, '0');
                      localStorage.setItem(GLOBAL_LS_KEYS.TOTAL_STUDIED, '0');
                      localStorage.setItem(GLOBAL_LS_KEYS.LAST_RESET_CHECK, todayET);
-                     localStorage.setItem(LS_KEYS.HAPPINESS_CALC_BASELINE, '0.0'); // Persist the reset baseline
                  }
              } catch (resetError) { console.error("Error during daily reset check:", resetError); }
 
@@ -137,8 +145,7 @@ function ClockPage() {
                 setMode(storedMode);
                 setTargetDuration(storedTarget);
                 setTime(initialDisplayTime);
-                happinessBaselineRef.current = currentHappinessBaseline; // Sync ref
-                setPetHappiness(currentHappiness); // Set loaded/reset value
+                happinessBaselineRef.current = storedHappinessBaseline; // Sync ref
                 setTotalStudied(currentTotalStudied); // Set loaded/reset value
                  setIsActive(storedIsActive); // Set active last to potentially trigger interval useEffect
                  setIsInitialized(true);
@@ -223,7 +230,7 @@ function ClockPage() {
 
             // Update Happiness & Total Studied only if studying
             if (isStudySession) {
-                const baselineSeconds = happinessBaselineRef.current; // Use ref for current baseline
+                const baselineSeconds = happinessBaselineRef.current;
                 const currentTotalMinutes = Math.floor(currentTotalElapsed / HAPPINESS_INCREASE_INTERVAL_SECONDS);
                 const baselineMinutes = Math.floor(baselineSeconds / HAPPINESS_INCREASE_INTERVAL_SECONDS);
                 const minutesToAdd = currentTotalMinutes - baselineMinutes;
@@ -231,17 +238,30 @@ function ClockPage() {
                 if (minutesToAdd > 0) {
                     console.log(`ClockPage Tick: Adding ${minutesToAdd} happiness.`);
                     const newBaseline = currentTotalMinutes * HAPPINESS_INCREASE_INTERVAL_SECONDS;
-                    happinessBaselineRef.current = newBaseline; // Update ref
-                    localStorage.setItem(LS_KEYS.HAPPINESS_CALC_BASELINE, newBaseline.toString()); // Persist baseline
-                    setPetHappiness(prev => { // Use functional update for happiness
-                        const newHap = Math.min(100, prev + minutesToAdd);
-                        localStorage.setItem(GLOBAL_LS_KEYS.PET_HAPPINESS, newHap.toString());
-                        return newHap;
-                    });
+                    happinessBaselineRef.current = newBaseline;
+                    localStorage.setItem(LS_KEYS.HAPPINESS_CALC_BASELINE, newBaseline.toString());
+                    
+                    // Update happiness in backend instead of localStorage
+                    const updateHappiness = async () => {
+                        try {
+                            const response = await api.get('/api/buddy/');
+                            if (response.data.length > 0) {
+                                const currentHappiness = response.data[0].petHappiness;
+                                const newHappiness = Math.min(100, currentHappiness + minutesToAdd);
+                                await api.patch('/api/buddy/1/update/', { petHappiness: newHappiness });
+                                setPetHappiness(newHappiness);
+                            }
+                        } catch (error) {
+                            console.error("Error updating pet happiness:", error);
+                        }
+                    };
+                    updateHappiness();
                 }
                 // Show motivation (keep existing logic)
                 const elapsedInt = Math.floor(currentTotalElapsed);
-                 if (elapsedInt > 0 && !motivation && elapsedInt % (5 * 60) === 0) { showMotivation(); }
+                if (elapsedInt > 0 && !motivation && elapsedInt % (5 * 60) === 0) {
+                    showMotivation();
+                }
             }
 
             // Handle Timer Finish (update totals here!)

@@ -35,9 +35,7 @@ function Form({ route, method }) {
         }
 
         // Prepare Data 
-        let userData = { username, password };
-        // PET NOT SENT to the backend unless the UserSerializer handles it.
-        //       'pet' is primarily used client-side for localStorage.
+        let userData = { username, password, favoritePet: pet, petBirthDate: new Date().toISOString() };
 
         //  API Call 
         try {

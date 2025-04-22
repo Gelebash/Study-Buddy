@@ -32,72 +32,37 @@ function Home() {
 
     useEffect(() => {
         document.body.classList.add('home-body');
-        setLoading(true); setError("");
-        try {
-            // Daily Reset Check 
-            const now = new Date();
-            const todayET = getESTDateString(now);
-            const lastResetCheckET = localStorage.getItem('lastResetCheckET'); // Ensure consistent key usage
-            let currentStoredHappiness = parseInt(localStorage.getItem('petHappiness') || '0', 10);
+        setLoading(true); 
+        setError("");
 
-            if (lastResetCheckET !== todayET) {
-                console.log("Home: New day detected, resetting happiness, total studied time, and happiness baseline.");
-                currentStoredHappiness = 0;
-                localStorage.setItem('petHappiness', '0');
-                localStorage.setItem('lastResetCheckET', todayET); // Use consistent key name
-                localStorage.setItem(LS_KEYS_TIMER.HAPPINESS_CALC_BASELINE, '0.0'); // Reset timer baseline used for happiness
-                 localStorage.setItem('totalStudiedTime', '0'); // Reset study time for the day
-             }
-            setPetHappiness(currentStoredHappiness);
-
-            //  Load User & Pet Info 
-            const storedUsername = localStorage.getItem('username') || "Buddy";
-            const storedPet = localStorage.getItem('favoritePet') || "Cat";
-            const storedFirstName = localStorage.getItem('petFirstName') || ""; // Load first name
-            const storedLastName = localStorage.getItem('petLastName') || "";   // Load last name
-
-            setUsername(storedUsername);
-            setFavoritePet(storedPet);
-            setFirstName(storedFirstName); // Set state
-            setLastName(storedLastName);
-
-            // Set defaults if nothing is found in localStorage
-            if (!localStorage.getItem('username')) localStorage.setItem('username', 'Buddy');
-            if (!localStorage.getItem('favoritePet')) localStorage.setItem('favoritePet', 'Cat');
-
-        } catch (err) {
-             console.error("Home: Error during initial state load/check:", err);
-             setError("Could not load user profile state.");
-        } finally {
-            setLoading(false);
-        }
-
-        // Storage listener to update if another tab changes relevant data
-        const handleStorageChange = (event) => {
-            if (event.key === 'petHappiness') {
-                console.log("Home: Received happiness update from storage", event.newValue);
-                setPetHappiness(parseInt(event.newValue || '0', 10));
+        const fetchBuddyInfo = async () => {
+            try {
+                const response = await api.get('/api/buddy/');
+                if (response.data.length > 0) {
+                    const buddyData = response.data[0];
+                    setFavoritePet(buddyData.favoritePet);
+                    setFirstName(buddyData.firstName);
+                    setLastName(buddyData.lastName);
+                    setPetHappiness(buddyData.petHappiness);
+                }
+                
+                const storedUsername = localStorage.getItem('username') || "Buddy";
+                setUsername(storedUsername);
+                
+            } catch (err) {
+                console.error("Home: Error fetching buddy info:", err);
+                setError("Could not load buddy profile.");
+            } finally {
+                setLoading(false);
             }
-             if (event.key === 'petFirstName') {
-                 setFirstName(event.newValue || "");
-                console.log("Home: Updated first name from storage");
-            }
-             if (event.key === 'petLastName') {
-                 setLastName(event.newValue || "");
-                console.log("Home: Updated last name from storage");
-            }
-            if (event.key === 'favoritePet') { // Keep listener for pet type
-                 setFavoritePet(event.newValue || "Default");
-             }
         };
-        window.addEventListener('storage', handleStorageChange);
 
-        // Cleanup function
+        fetchBuddyInfo();
+
         return () => {
             document.body.classList.remove('home-body');
-            window.removeEventListener('storage', handleStorageChange);
         };
-    }, []); // Empty dependency array ensures this runs only once on mount
+    }, []);
 
     const petIcon = petIcons[favoritePet] || petIcons.Default;
 

@@ -72,33 +72,27 @@ function Flashcards() {
     // Combined Mount/Unmount Effect for Body Class and Initial Fetch/Listeners
     useEffect(() => {
         console.log("Flashcards: Mount Effect - Adding flashcards-body class & fetching data");
-        document.body.classList.add('flashcards-body'); // Add class FIRST
-        fetchFlashcards(); // Then fetch data
+        document.body.classList.add('flashcards-body');
+        fetchFlashcards();
 
-        const savedHappiness = parseInt(localStorage.getItem('petHappiness') || '0', 10);
-        setPetHappiness(savedHappiness);
-
-        const handleStorageChange = (event) => {
-            if (event.key === 'petHappiness') {
-                setPetHappiness(parseInt(event.newValue || '0', 10));
+        // Fetch initial happiness from backend
+        const fetchHappiness = async () => {
+            try {
+                const response = await api.get('/api/buddy/');
+                if (response.data.length > 0) {
+                    setPetHappiness(response.data[0].petHappiness);
+                }
+            } catch (error) {
+                console.error("Error fetching pet happiness:", error);
             }
-             if (event.key === 'hardCardIds') {
-                 setHardCardIds(JSON.parse(event.newValue || '[]'));
-             }
-             if (event.key === 'easyCardIds') {
-                 setEasyCardIds(JSON.parse(event.newValue || '[]'));
-             }
         };
-        window.addEventListener('storage', handleStorageChange);
+        fetchHappiness();
 
-        // Cleanup Function
         return () => {
             console.log("Flashcards: Unmount Effect - Removing flashcards-body class");
-            document.body.classList.remove('flashcards-body'); // Remove class on unmount
-            window.removeEventListener('storage', handleStorageChange);
+            document.body.classList.remove('flashcards-body');
         };
-    }, [fetchFlashcards]); // Depend only on fetchFlashcards callback reference
-
+    }, [fetchFlashcards]);
 
     // Other useEffects remain the same (Sync activeMode, Save hard/easy, Update Displayed)
     // Sync activeMode with URL Path
@@ -199,10 +193,22 @@ function Flashcards() {
     const handleNext = useCallback(() => {
         if (displayedFlashcards.length === 0 || studySubView !== 'study' || activeMode !== 'study') return;
         navigateCard(prev => (prev < displayedFlashcards.length - 1 ? prev + 1 : 0));
-        const currentHappiness = parseInt(localStorage.getItem('petHappiness') || '0', 10);
-        const newHappiness = Math.min(100, currentHappiness + 1);
-        localStorage.setItem('petHappiness', newHappiness.toString());
-        setPetHappiness(newHappiness);
+        
+        // Update happiness in backend
+        const updateHappiness = async () => {
+            try {
+                const response = await api.get('/api/buddy/');
+                if (response.data.length > 0) {
+                    const currentHappiness = response.data[0].petHappiness;
+                    const newHappiness = Math.min(100, currentHappiness + 1);
+                    await api.patch('/api/buddy/1/update/', { petHappiness: newHappiness });
+                    setPetHappiness(newHappiness);
+                }
+            } catch (error) {
+                console.error("Error updating pet happiness:", error);
+            }
+        };
+        updateHappiness();
     }, [navigateCard, displayedFlashcards.length, studySubView, activeMode]);
 
      const handleMarkHard = useCallback(() => {
