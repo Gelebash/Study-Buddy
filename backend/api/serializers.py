@@ -1,16 +1,31 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
-from .models import Note
+from .models import Note, Buddy
+
+class BuddySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Buddy
+        fields = ['favoritePet', 'firstName', 'middleName', 'lastName', 'stateName', 'countryName', 'petHappiness', 'petBirthDate', 'petIdNumber']
+        extra_kwargs = {
+            'firstName': {'required': False},
+            'middleName': {'required': False},
+            'lastName': {'required': False},
+            'stateName': {'required': False},
+            'countryName': {'required': False},
+            'petIdNumber': {'required': False},
+        }
 
 class UserSerializer(serializers.ModelSerializer):
+    buddy = BuddySerializer(read_only=True)
+
     class Meta:
         model = User
-        fields = ['id', 'username', 'password']
-        # Only allow passwords to be wrote on creation, never read by users.
+        fields = ['id', 'username', 'password', 'buddy']  # Removed favoritePet and petBirthDate
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
         user = User.objects.create_user(**validated_data)
+        Buddy.objects.create(user=user)  # Buddy will handle favoritePet and petBirthDate
         return user
     
 class NoteSerializer(serializers.ModelSerializer):

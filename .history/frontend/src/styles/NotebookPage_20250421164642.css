@@ -1,0 +1,159 @@
+/*  Base & Body  */
+body.notebook-body {
+    background-color: #f8f9fa; /* Light grey background */
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    color: #495057;
+    box-sizing: border-box;
+    margin: 0;
+    overflow: hidden;
+}
+
+
+.page-content {
+    padding-top: 60px; /* Height of Navbar */
+    height: calc(100vh - 60px);
+    overflow: hidden;
+    
+}
+
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.notebook-page-container {
+    width: 100%;
+    height: 100%; /* Fill .page-content height */
+    display: flex;
+    animation: fadeIn 0.4s ease-out forwards;
+    background-color: #f1f3f5; /* Mid grey background */
+    border-top: 1px solid #dee2e6;
+}
+
+
+/* 4 Column Layout */
+.notebook-layout {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    border-left: 1px solid #dee2e6;
+}
+
+.notebook-column {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #dee2e6;
+    box-sizing: border-box;
+    background-color: #f8f9fa; /* Light grey column background */
+    overflow: hidden;
+}
+.notebook-column:last-child { border-right: none; }
+
+/* Column Widths */
+.courses-column { flex: 0 0 180px; background-color: #e9ecef; }
+.sections-column { flex: 0 0 200px; background-color: #f1f3f5; }
+.pages-column { flex: 0 0 220px; background-color: #f8f9fa; }
+.content-column { flex: 1 1 auto; background-color: #ffffff; padding: 0; overflow-y: auto; /* <<< ALLOW CONTENT COLUMN TO SCROLL */}
+
+/* Add Buttons  */
+.notebook-add-button {
+    display: block; width: auto; margin: 10px 12px; padding: 6px 10px; font-size: 0.8rem;
+    font-weight: 600; color: #e91e63; background-color: transparent; border: none;
+    border-radius: 4px; cursor: pointer; text-align: left; transition: color 0.2s ease; flex-shrink: 0;
+}
+.notebook-add-button:hover:not(:disabled) { color: #c2185b; }
+.notebook-add-button:disabled { color: #adb5bd; cursor: not-allowed; }
+
+/* Lists  */
+.notebook-list {
+    list-style: none; padding: 0; margin: 0; /* Remove bottom padding */
+    overflow-y: auto; flex-grow: 1; border-top: 1px solid #dee2e6;
+}
+
+.notebook-list-item {
+    padding: 8px 10px; /* Slightly reduced padding */
+    font-size: 0.85rem; color: #495057; cursor: pointer;
+    border-bottom: 1px solid #e9ecef; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    transition: background-color 0.15s ease, border-left 0.15s ease, padding-left 0.15s ease;
+    border-left: 3px solid transparent;
+    display: flex; /* <<< Use Flex for controls */
+    justify-content: space-between; /* <<< Push text left, controls right */
+    align-items: center; /* <<< Vertically align text and controls */
+}
+.notebook-list-item:last-child { border-bottom: none; }
+/* Hover styles */
+.courses-column .notebook-list-item:not(.active):hover { background-color: #dee2e6; }
+.sections-column .notebook-list-item:not(.active):hover { background-color: #e9ecef; }
+.pages-column .notebook-list-item:not(.active):hover { background-color: #f1f3f5; }
+/* Active styles */
+.notebook-list-item.active { background-color: #f8bbd0; color: #ad1457; font-weight: 600; border-left-color: #e91e63; padding-left: 7px; /* Adjust padding */ }
+.notebook-list-item.active:hover { background-color: #f8bbd0; }
+
+.notebook-list-item .item-text {
+    flex-grow: 1; /* Allow text to take space */
+    overflow: hidden; text-overflow: ellipsis; /* Keep ellipsis on text */
+    margin-right: 5px; /* Space between text and controls */
+}
+
+/* Placeholder text */
+.list-placeholder { padding: 15px; font-size: 0.8rem; color: #adb5bd; text-align: center; font-style: italic; }
+
+/* --- Delete Button/Controls Styles --- */
+.item-controls {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex-shrink: 0; /* Prevent controls shrinking */
+    opacity: 0; /* Initially hidden */
+    transition: opacity 0.15s ease-in-out;
+}
+.notebook-list-item:hover .item-controls {
+    opacity: 1; /* Show controls on hover */
+}
+.delete-button {
+    background: none; border: none; padding: 0 3px; cursor: pointer;
+    color: #e91e63; /* Pink delete button */
+    font-size: 1.1rem; /* Control x size */
+    line-height: 1; font-weight: bold;
+    transition: color 0.2s ease;
+}
+.delete-button:hover { color: #c2185b; /* Darker pink hover */}
+
+
+/* Content Column Styling */
+.content-header {
+    padding: 7px 25px; /* Increase horizontal padding */ background-color: #fff; border-bottom: 1px solid #e9ecef;
+    text-align: right; flex-shrink: 0; position: sticky; top: 0; z-index: 1; /* Sticky Header */
+}
+.current-datetime { font-size: 0.75rem; color: #6c757d; }
+
+.content-editor-area {
+    /* Remove flex properties, allow natural flow */
+    padding: 20px 30px; /* Maintain padding */
+    box-sizing: border-box;
+    min-height: calc(100vh - 60px - 34px); /* Set min-height for scroll context VH - Nav - Header */
+    overflow-y: auto; 
+}
+
+.page-title-header {
+    font-size: 1.4rem; font-weight: 600; color: #000000;
+    margin: 0 0 15px 0; padding-bottom: 10px; border-bottom: 1px solid #fce4ec;
+}
+
+.content-textarea {
+    width: 100%; border: none; padding: 5px 2px;
+    font-size: 1rem; line-height: 1.7; font-family: inherit; color: #000000;
+    resize: none; background-color: transparent; box-sizing: border-box;
+    min-height: 50vh; /* Ensure it takes significant space initially */
+    height: auto; /* Allows growing */
+    display: block; /* Treat as block */
+    /* Remove internal scrollbar - relying on content-column or page scroll now */
+    
+}
+.content-textarea:focus { outline: none; }
+
+.content-placeholder { /* Placeholder styling */ }
+.notebook-error { /* Error Styling */ }
+
+
+@media (max-width: 850px) { }

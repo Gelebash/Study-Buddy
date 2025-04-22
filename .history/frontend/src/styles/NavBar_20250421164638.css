@@ -1,0 +1,133 @@
+.navbar-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 40px;
+    background-color: #fff;
+    box-shadow: 0 2px 8px rgba(240, 98, 146, 0.1);
+    border-bottom: 1px solid #ffe0e8;
+    /* Changed from margin-bottom */
+    position: fixed; /* Make navbar fixed */
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    height: 60px; /* Give navbar explicit height */
+    box-sizing: border-box; /* Include padding in height calculation */
+}
+
+.navbar-brand {
+    font-size: 1.6rem;
+    font-weight: 700;
+}
+
+.brand-link {
+    text-decoration: none;
+    color: #f06292;
+    transition: color 0.2s ease;
+}
+
+.brand-link:hover {
+    color: #ec407a;
+}
+
+.navbar-links {
+    display: flex;
+    gap: 10px;
+    align-items: center; /* Vertically align items */
+}
+
+.nav-link {
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-radius: 18px;
+    border: none;
+    cursor: pointer;
+    background-color: #fdf6f8;
+    color: #6c757d;
+    text-decoration: none;
+    transition: all 0.25s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.06);
+    display: inline-block; /* Or inline-flex if centering content */
+    text-align: center;
+    line-height: normal; /* Reset line height for buttons */
+}
+
+.nav-link:hover:not(.active) { /* Exclude active link from basic hover */
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+    background-color: #fce4ec;
+    color: #f06292;
+}
+
+.nav-link.active {
+    background-color: #f06292;
+    color: white;
+    font-weight: 600;
+    box-shadow: 0 4px 10px rgba(240, 98, 146, 0.3);
+}
+
+/* Make logout button look like other links */
+.logout-button {
+    background-color: #fdf6f8; /* Match non-active background */
+    color: #6c757d; /* Match non-active text color */
+}
+
+.logout-button:hover {
+    background-color: #fce4ec; /* Match hover background */
+    color: #f06292; /* Match hover text color */
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.08);
+}
+
+
+/* Style for the page content area to prevent overlap with fixed navbar */
+.page-content {
+    padding-top: 80px; 
+}
+
+
+@media (max-width: 768px) {
+    .navbar-container {
+        flex-direction: row; /* Keep horizontal on tablet */
+        padding: 8px 20px;
+        height: auto;
+        min-height: 55px;
+    }
+    .navbar-brand {
+        font-size: 1.4rem;
+    }
+    .navbar-links {
+        flex-wrap: nowrap;
+        justify-content: flex-end;
+        gap: 8px;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: none; /* Firefox */
+    }
+     .navbar-links::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+
+    .nav-link {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        flex-shrink: 0; /* Prevent links from shrinking */
+    }
+     .page-content {
+         padding-top: 70px; /* Adjust if navbar height changes */
+     }
+}
+
+
+@media (max-width: 480px) {
+     .navbar-brand {
+        font-size: 1.2rem;
+    }
+     .nav-link {
+        padding: 5px 10px;
+        font-size: 0.75rem;
+     }
+     .page-content {
+         padding-top: 65px; /* Adjust again if needed */
+    }
+}

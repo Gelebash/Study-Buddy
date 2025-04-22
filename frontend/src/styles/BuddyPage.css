@@ -1,0 +1,298 @@
+/*  Base Body & Page Layout */
+body.buddy-body-id-horizontal {
+    background-color: #fdf6f8;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    color: #333;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    box-sizing: border-box;
+    margin: 0;
+}
+
+.page-content {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    flex-grow: 1;
+    padding: 40px 20px;
+    box-sizing: border-box;
+}
+
+/*  ID Card Structure & Appearance  */
+.buddy-page-container {
+    width: 100%;
+    max-width: 850px;
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.buddy-id-card-horizontal {
+    background-color: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 6px 15px rgba(0, 0, 0, 0.12);
+    border: 1px solid #e0e0e0;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.id-realistic-header-bar {
+     background-color: #fce4ec;
+     padding: 6px 20px;
+     text-align: center;
+     font-size: 0.75rem;
+     font-weight: bold;
+     color: #ad1457;
+     text-transform: uppercase;
+     letter-spacing: 1px;
+     border-bottom: 1px solid #f8bbd0;
+ }
+
+/* Content within the card (Photo + Details)  */
+.id-horizontal-content {
+    display: flex;
+    flex-direction: row;
+    padding: 25px;
+    gap: 30px;
+    align-items: center; /* Align photo and details block vertically */
+}
+
+/* Photo Area (Left Side)  */
+.id-horizontal-photo-area {
+    flex-shrink: 0;
+    width: 160px;
+    height: 180px;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #dee2e6;
+    overflow: hidden;
+}
+
+.id-horizontal-photo {
+    font-size: 6rem;
+    line-height: 1;
+    color: #f06292;
+}
+
+/* Details Container (Holds Main and Side Info) */
+.id-horizontal-details {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: row;
+    gap: 30px;
+    align-items: flex-start; /* Align tops of columns */
+    min-width: 0; /* Prevent flex issues */
+}
+
+/* Main Info Column (Left: ID, Name, Location)  */
+.main-info {
+    flex-grow: 1; /* Takes available space */
+    display: flex; /* Use flexbox */
+    flex-direction: column; /* <<< KEY: Stack children vertically >>> */
+    gap: 20px; /* Space between the field rows (ID, Name, Loc) */
+    width: 100%; /* Take full width allowed by parent flex */
+    min-width: 0; /* Allow shrinking */
+    box-sizing: border-box;
+}
+
+/* Side Info Column (Right: Species, Issued, Owner, Status)  */
+.side-info {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 20px; /* Match main-info gap or adjust as needed */
+    min-width: 180px;
+    box-sizing: border-box;
+}
+
+/* Individual Field Row Styling (Containers for each field group) */
+.id-field-row {
+    /* This is just a container, main layout within .id-field */
+    width: 100%; /* Ensure it spans the column */
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Multi-field rows specifically for the side-info */
+.side-info .id-multi-field-row {
+    display: flex;
+    gap: 15px; /* Space between Species/Issued, Owner/Status */
+    flex-wrap: wrap;
+    width: 100%;
+}
+.side-info .id-multi-field-row .id-field {
+    flex: 1 1 40%; /* Allow two fields side-by-side */
+    min-width: 80px; /* Prevent becoming too small */
+}
+
+/* Individual Field Block (Label + Value Container/Edit Area)  */
+.id-field {
+    display: flex;
+    flex-direction: column; /* Stack label and value-container */
+    gap: 4px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/*  Label Styling  */
+.id-label {
+    font-size: 0.7rem;
+    color: #ad1457;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 3px;
+    text-align: left;
+}
+
+/* Value Styling (within display view)  */
+.id-value {
+    font-size: 1rem;
+    color: #333;
+    font-weight: 500;
+    line-height: 1.4;
+    min-height: 1.4em;
+    word-break: break-word;
+    white-space: pre-wrap;
+    text-align: left;
+}
+.id-value.id-number-value {
+    font-family: 'Consolas', 'Monaco', monospace;
+    font-weight: bold; font-size: 1.1rem; color: #e91e63; letter-spacing: 1.5px;
+}
+.id-value.name-value {
+    font-weight: bold; font-size: 1.15rem; text-transform: uppercase;
+}
+.placeholder-text { font-style: italic; color: #aaa; font-size: 0.95rem; }
+
+
+/*  Container for Value + Edit Button  */
+.id-value-edit-container {
+    display: flex;
+    align-items: flex-start; /* Align top of button with top of text */
+    justify-content: space-between;
+    width: 100%;
+    gap: 8px; /* Gap between text and button */
+}
+.id-value-edit-container .id-value {
+    flex-grow: 1; /* Text takes available space */
+    padding-right: 0; /* Gap handles spacing */
+}
+.id-value-edit-container .id-button.edit {
+     flex-shrink: 0; /* Button doesn't shrink */
+     margin-left: 0; /* Use gap instead */
+     align-self: flex-start; /* Align button to top */
+}
+
+
+/* Edit State Styling  */
+.id-field-edit {
+    border: 1px solid #fce4ec; padding: 10px 12px; margin: 0;
+    border-radius: 6px; background-color: #fffafd; display: flex;
+    flex-wrap: wrap; gap: 8px; align-items: center; width: 100%;
+    box-sizing: border-box;
+}
+.id-label-inline {
+    font-size: 0.7rem; color: #ad1457; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-right: 8px; flex-shrink: 0;
+}
+.id-edit-group { flex-wrap: nowrap; }
+.id-field-edit input[type="text"] {
+    flex: 1 1 90px; min-width: 70px; font-size: 0.95rem; padding: 7px 10px;
+    border: 1px solid #f48fb1; border-radius: 3px; background-color: #ffffff;
+    color: #333; box-sizing: border-box;
+}
+.id-field-edit input[type="text"]:focus {
+    border-color: #e91e63; outline: 0;
+    box-shadow: 0 0 0 2px rgba(240, 98, 146, 0.2);
+}
+.name-edit-group input.initial {
+    flex-grow: 0; flex-basis: 45px; min-width: 40px; text-align: center;
+}
+.edit-button-container {
+    display: flex; gap: 6px; align-items: center; margin-left: auto; flex-shrink: 0;
+}
+
+
+/*  General & Edit/Save/Cancel Buttons  */
+.id-button {
+    background: none; border: none; padding: 3px 5px; cursor: pointer;
+    font-size: 1rem; line-height: 1; color: #bbb; transition: color 0.2s ease;
+    flex-shrink: 0; vertical-align: middle;
+}
+.id-button:hover:not(:disabled) { color: #777; }
+.id-button.edit { color: #f06292; font-size: 1.2rem; }
+.id-button.save { color: #4CAF50; font-size: 1.3rem; }
+.id-button.cancel { color: #f44336; font-size: 1.3rem; }
+
+
+/* Error Message */
+.id-target-error {
+    color: #c62828; background-color: #ffcdd2; border: 1px solid #ef9a9a;
+    font-size: 0.85rem; text-align: left; width: 100%; margin-top: 8px;
+    padding: 6px 10px; border-radius: 4px; box-sizing: border-box;
+    order: 99; /* Position last within the flex column */
+}
+
+/* Status Field Specific  */
+.status-field {}
+.status-field > div { display: flex; flex-direction: column; gap: 4px; }
+.id-value.mood { font-size: 1rem; font-weight: 600; }
+.id-value.mood.happy { color: #d81b60; }
+.id-value.mood.upset { color: #757575; }
+.id-target-bar-container { width: 100%; height: 9px; background-color: #fce4ec; border-radius: 5px; overflow: hidden; margin-top: 5px; }
+.id-target-bar { height: 100%; background: linear-gradient(to right, #f48fb1, #e91e63); border-radius: 5px; transition: width 0.5s ease-out; }
+
+
+/*  Responsive Design */
+@media (max-width: 768px) {
+     .buddy-page-container { max-width: 95%; }
+     .id-horizontal-content { flex-direction: column; align-items: center; padding: 20px; gap: 20px; }
+     .id-horizontal-photo-area { width: 140px; height: 160px; margin-bottom: 15px; }
+     .id-horizontal-photo { font-size: 5rem; }
+     .id-horizontal-details { flex-direction: column; width: 100%; align-items: center; gap: 25px; }
+     /* Stack main and side info, center their content */
+     .main-info, .side-info { width: 100%; max-width: 450px; align-items: center; min-width: unset; gap: 20px; }
+    /* Ensure text within fields is centered on small screens */
+    .id-field { align-items: center; }
+    .id-label, .id-value { text-align: center; width: 100%; }
+    /* Center value and button */
+    .id-value-edit-container { justify-content: center; }
+    .id-value { padding-right: 0; }
+    .id-button.edit { margin-left: 5px; align-self: center; }
+    /* Ensure side-info multi-fields stack vertically */
+    .side-info .id-multi-field-row { flex-direction: column; align-items: center; gap: 15px; }
+    .side-info .id-multi-field-row .id-field { width: auto; /* Adjust if centering looks off */ flex: 0 0 auto; /* Reset flex */ }
+    /* Edit mode centering */
+    .id-field-edit { justify-content: center; text-align: center; }
+    .id-label-inline { margin-right: 5px; margin-bottom: 5px; }
+    .edit-button-container { margin-left: 0; justify-content: center; width: 100%; margin-top: 10px; }
+    .id-target-error { text-align: center; }
+}
+
+@media (max-width: 480px) {
+    .page-content { padding: 20px 10px; }
+    .id-horizontal-content { padding: 15px; }
+    .id-horizontal-photo-area { width: 120px; height: 140px; }
+    .id-horizontal-photo { font-size: 4.5rem; }
+    .main-info, .side-info { max-width: 100%; }
+    .id-value { font-size: 0.95rem; }
+    .id-value.name-value, .id-value.id-number-value { font-size: 1.05rem; }
+    .id-label { font-size: 0.65rem; }
+    .id-field-edit input[type="text"] { font-size: 0.9rem; padding: 6px 8px; }
+    .name-edit-group input.initial { flex-basis: 40px; }
+    .id-button { font-size: 1rem; }
+    .id-button.edit, .id-button.save, .id-button.cancel { font-size: 1.2rem; }
+}

@@ -1,0 +1,202 @@
+body.clock-body {
+    background-color: #fdf6f8;
+    min-height: 100vh;
+    display: flex;
+    
+    /* align-items: center; /* Vertically center */
+    align-items: flex-start; /* Align card to top for longer pages */
+    justify-content: center; /* Horizontally center */
+    padding-top: 80px; /* Adjust based on NavBar height */
+    padding-bottom: 40px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    box-sizing: border-box;
+}
+
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.02); } 100% { transform: scale(1); } }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+.timer-page-container {
+    width: 100%;
+    max-width: 550px;
+    padding: 15px;
+    box-sizing: border-box;
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+.timer-card {
+    background-color: #fff;
+    padding: 30px 35px;
+    border-radius: 16px;
+    box-shadow: 0 8px 25px rgba(220, 200, 205, 0.18);
+    text-align: center;
+    border: 1px solid #fff1f4;
+    margin: 0 auto; /* Essential for centering the card */
+}
+
+.timer-title {
+    color: #e91e63;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.6rem;
+    font-weight: 600;
+}
+
+.timer-session-controls {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    margin-bottom: 25px;
+    align-items: center; /* Center groups */
+}
+
+.session-selector-group, .preset-buttons-group {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.session-selector-group label, .preset-buttons-group label {
+    color: #d81b60;
+    font-size: 0.9rem;
+    font-weight: 500;
+    margin-right: 5px;
+    flex-shrink: 0;
+}
+
+.mode-button, .preset-button {
+    padding: 6px 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    border-radius: 12px;
+    border: 1px solid #f48fb1;
+    background-color: #fff;
+    color: #d81b60;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: none;
+}
+.mode-button:hover:not(:disabled):not(.active),
+.preset-button:hover:not(:disabled):not(.active) {
+    background-color: #fce4ec;
+    border-color: #f06292;
+}
+.mode-button.active,
+.preset-button.active {
+    background-color: #f06292;
+    color: white;
+    border-color: #f06292;
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgba(240, 98, 146, 0.2);
+}
+.mode-button:disabled,
+.preset-button:disabled {
+    background-color: #f8f8f8;
+    border-color: #eee;
+    color: #bdbdbd;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+
+.timer-display-wrapper {
+    background-color: transparent;
+    border-radius: 0;
+    padding: 10px 0 15px 0;
+    margin-bottom: 20px;
+    box-shadow: none;
+}
+
+.timer-display {
+    font-size: 4.5rem;
+    font-weight: 500;
+    color: #f06292;
+    letter-spacing: 2px;
+    font-family: 'Poppins', 'Segoe UI', sans-serif;
+    line-height: 1.1;
+    text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.2);
+}
+
+.motivation-message {
+    color: #ad1457;
+    height: 1.5em;
+    font-style: italic;
+    font-size: 0.95rem;
+    margin: -15px 0 15px 0;
+    animation: fadeIn 0.5s;
+    min-height: 1.5em;
+}
+
+.timer-controls {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 25px;
+}
+
+.timer-button {
+    padding: 8px 16px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    min-width: 80px;
+    background-color: #f9f9f9;
+    color: #616161;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+}
+.timer-button:hover:not(:disabled) { background-color: #f1f1f1; border-color: #d5d5d5; transform: translateY(-1px); box-shadow: 0 2px 5px rgba(0,0,0,0.1);}
+.timer-button:active:not(:disabled) { background-color: #e0e0e0; transform: translateY(0); box-shadow: inset 0 1px 2px rgba(0,0,0,0.1);}
+.timer-button:disabled { background-color: #f5f5f5 !important; border-color: #eee !important; color: #bdbdbd !important; cursor: not-allowed; opacity: 0.7; box-shadow: none; transform: none;}
+.start-button, .pause-button { background-color: #f06292; color: white; border-color: #f06292; }
+.start-button:hover:not(:disabled), .pause-button:hover:not(:disabled) { background-color: #ec407a; border-color: #ec407a; }
+.reset-button {}
+.reset-button:hover:not(:disabled) { background-color: #e0e0e0; border-color: #bdbdbd; }
+.timer-button .button-icon { margin-right: 4px; font-family: 'Segoe UI Emoji', sans-serif; }
+
+.timer-stats {
+    margin-top: 20px;
+    padding-top: 15px;
+    border-top: 1px dashed #f48fb1;
+    color: #ec407a;
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+
+.timer-stats p { margin: 4px 0; }
+.happiness-meter p { margin-bottom: 8px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 5px; color: #ec407a;}
+.pet-icon { font-size: 1.1rem; color: #ec407a; animation: pulse 2.5s infinite ease-in-out; }
+.happiness-bar-container { width: 80%; max-width: 200px; height: 10px; background-color: #f8bbd0; border-radius: 5px; margin: 0 auto; overflow: hidden; position: relative; }
+.happiness-bar { height: 100%; background: linear-gradient(90deg, #ffcdd2 0%, #a5d6a7 100%); border-radius: 5px; transition: width 0.5s ease-out; box-shadow: inset 0 -1px 1px rgba(0, 0, 0, 0.1); }
+
+.loading-indicator { text-align: center; padding: 15px; color: #888; font-style: italic; }
+.error-message { text-align: center; padding: 10px; margin: 10px; color: #dc3545; border: 1px solid #f5c6cb; background-color: #f8d7da; border-radius: 5px; }
+
+
+@media (max-width: 600px) {
+    .timer-card { padding: 25px 20px; }
+    .timer-title { font-size: 1.4rem; }
+    .timer-display { font-size: 3.8rem; }
+    .timer-button { padding: 8px 15px; }
+    .timer-stats { font-size: 0.9rem; }
+    body.clock-body { padding-top: 70px; }
+    .preset-buttons-group { gap: 5px; } /* Smaller gap on smaller screens */
+    .mode-button, .preset-button { padding: 5px 10px; font-size: 0.8rem;}
+}
+
+@media (max-width: 400px) {
+    .timer-display { font-size: 3rem; letter-spacing: 1px; }
+    .timer-controls { gap: 8px; }
+    .timer-button { min-width: 70px; padding: 7px 12px; font-size: 0.85rem;}
+    .timer-stats { font-size: 0.85rem; }
+    body.clock-body { padding-top: 65px; }
+    .preset-buttons-group label { margin-bottom: 5px; width: 100%; text-align: center;} /* Stack label */
+    .preset-buttons-group { justify-content: center;} /* Ensure buttons center below label */
+}
