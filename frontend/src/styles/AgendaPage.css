@@ -1,0 +1,199 @@
+/* Base & Body  */
+body.agenda-body {
+    background-color: #fdf6f8; /* Overall light pink background */
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    color: #616161; /* Primary text grey */
+    box-sizing: border-box;
+}
+
+.page-content {
+    padding-top: 80px;
+    padding-bottom: 40px;
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Centering container */
+.agenda-page-container {
+    width: 100%;
+    max-width: 900px;
+    margin: 20px auto;
+    animation: fadeIn 0.6s ease-out forwards;
+}
+
+/* White Paper Area */
+.planner-content-area {
+    background-color: #ffffff;
+    border-radius: 10px;
+    box-shadow: 0 5px 20px rgba(200, 180, 190, 0.2);
+    border: 1px solid #fce4ec;
+    padding: 30px 35px;
+}
+
+/* Planner Header  */
+.planner-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 25px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #f8bbd0; /* Pink separator */
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.planner-main-title {
+    font-size: 1.8rem;
+    font-weight: 600;
+    color: #e91e63; /* Pink title */
+    margin: 0;
+}
+
+.planner-date-input label {
+    font-size: 0.85rem;
+    margin-right: 8px;
+    color: #ad1457; /* Darker pink label */
+    font-weight: 500;
+}
+
+.planner-date-input input[type="date"] {
+    padding: 4px 7px;
+    border: 1px solid #f8bbd0;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    color: #616161; /* Grey text */
+    background-color: #fffafa;
+}
+.planner-date-input input[type="date"]:focus {
+    outline: none;
+    border-color: #f06292; /* Pink focus */
+    box-shadow: 0 0 0 2px rgba(240, 98, 146, 0.15);
+}
+
+/*  Days of the Week Section (Horizontal Bar)  */
+.daily-planner-section-horizontal {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px 0;
+    margin-bottom: 30px;
+    border-bottom: 1px solid #fce4ec; /* Light pink separator */
+    flex-wrap: wrap;
+    gap: 10px 5px;
+}
+
+.day-item-horizontal { display: flex; align-items: center; gap: 6px; }
+.day-checkbox { width: 15px; height: 15px; margin: 0; border: 1px solid #f48fb1; border-radius: 3px; appearance: none; cursor: pointer; position: relative; background-color: #fff; }
+.day-checkbox:checked { background-color: #f06292; border-color: #e91e63; }
+.day-checkbox:checked::after { content: '\2714'; font-size: 10px; color: white; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); }
+.day-label { font-size: 0.85rem; font-weight: 500; color: #757575; /* Grey text */ cursor: pointer; }
+
+/*  Main Content Stack (Vertical)  */
+.planner-vertical-stack { display: flex; flex-direction: column; gap: 25px; }
+
+/* Individual Section Styling */
+.planner-section {
+    background-color: #fff;
+    padding: 0;
+    border-radius: 8px;
+    border: 1px solid #fce4ec; /* Pink Border */
+    box-shadow: 0 2px 6px rgba(220, 200, 210, 0.18);
+    display: flex;
+    flex-direction: column;
+}
+
+.planner-section-header {
+    padding: 10px 15px; font-size: 0.9rem; font-weight: 600; color: white;
+    border-top-left-radius: 7px; border-top-right-radius: 7px;
+    display: flex; align-items: center; gap: 8px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+    /*  UNIFIED PINK HEADER BACKGROUND  */
+    background-color: #f06292;
+}
+.planner-section-header span { font-size: 1em; }
+
+
+
+.planner-section-content { padding: 15px 20px; flex-grow: 1; }
+
+/* Specific Content Styling (Goals, Lists, Tables) */
+.goals-list { padding: 0; list-style: none; margin: 0; }
+.goal-item { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; }
+.goal-item span { font-size: 0.9rem; color: #ad1457; min-width: 20px; }
+.goal-item input[type="text"] { flex-grow: 1; border: none; border-bottom: 1px solid #f8bbd0; padding: 4px 2px; font-size: 0.95rem; background: transparent; color: #555;}
+.goal-item input[type="text"]:focus { outline: none; border-bottom-color: #f06292; }
+
+.checklist { padding: 0; list-style: none; margin: 0; }
+.checklist-item { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid #f8f0f3; position: relative; /* Needed for delete button positioning */}
+.checklist-item:last-child { border-bottom: none; }
+.checklist-item input[type="checkbox"] { width: 14px; height: 14px; cursor: pointer; flex-shrink: 0; accent-color: #f06292; margin-top: 1px; }
+.checklist-item input[type="text"] { flex-grow: 1; border: none; padding: 4px 0; font-size: 0.9rem; background: transparent; color: #616161;}
+.checklist-item input[type="text"]:focus { outline: none; border-bottom: 1px dashed #f48fb1; }
+.checklist-item input[type="text"].completed { text-decoration: line-through; color: #bdbdbd; }
+
+/* Added padding for delete button space */
+.checklist-item.with-delete input[type="text"] {
+    padding-right: 25px;
+}
+/* Delete Button for Lists */
+.delete-item-button {
+    position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+    background: none; border: none; color: #f8bbd0; /* Light pink */ cursor: pointer;
+    font-size: 1.3rem; line-height: 1; padding: 0 4px; font-weight: lighter;
+    transition: color 0.2s ease;
+}
+.delete-item-button:hover { color: #e91e63; /* Brighter pink hover */ }
+
+.add-item-button { background: none; border: none; color: #e91e63; font-size: 0.85rem; cursor: pointer; margin-top: 12px; padding: 4px 0; display: inline-flex; align-items: center; gap: 4px; font-weight: 500;}
+.add-item-button:hover { color: #c2185b; }
+.add-item-button span { font-weight: bold; margin-right: 3px; }
+
+
+.planner-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+.planner-table th, .planner-table td { border: 1px solid #fce4ec; padding: 8px 10px; font-size: 0.85rem; text-align: left; vertical-align: middle; }
+.planner-table th { background-color: #fff8f9; font-weight: 600; color: #ad1457; border-bottom-width: 2px; border-bottom-color: #f8bbd0; }
+.planner-table td { background-color: #fff; }
+.planner-table .col-due { width: 100px; }
+.planner-table .col-check { width: 35px; text-align: center;}
+.planner-table .col-desc { width: auto; }
+/* Delete Column in Table */
+.planner-table .col-delete { width: 35px; text-align: center; padding-left: 4px; padding-right: 4px; }
+
+.planner-table input[type="date"] { width: calc(100% - 6px); border: none; padding: 3px 0px; font-size: 0.85rem; background: transparent; color: #616161; box-sizing: border-box;}
+.planner-table input[type="checkbox"] { width: 15px; height: 15px; display: block; margin: 0 auto; cursor: pointer; accent-color: #f06292; }
+.planner-table input[type="text"] { width: calc(100% - 6px); border: none; padding: 4px 0px; font-size: 0.85rem; background: transparent; color: #616161; box-sizing: border-box;}
+.planner-table input:focus { outline: none; }
+.planner-table td.col-desc input[type="text"].completed { text-decoration: line-through; color: #bdbdbd; }
+
+/* Delete Button in Table */
+.delete-row-button {
+    background: none; border: none; color: #f8bbd0; /* Light pink */ cursor: pointer;
+    font-size: 1.1rem; line-height: 1; padding: 0; font-weight: lighter;
+    transition: color 0.2s ease; display: inline-block;
+}
+.delete-row-button:hover { color: #e91e63; /* Brighter pink hover */ }
+
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+     .agenda-page-container { max-width: 600px; }
+     .planner-table th, .planner-table td { font-size: 0.8rem; padding: 6px 8px; }
+     .planner-table input[type="date"], .planner-table input[type="text"] { font-size: 0.8rem; }
+     .daily-planner-section-horizontal { justify-content: center; }
+}
+
+@media (max-width: 576px) {
+    .agenda-page-container { padding: 15px 20px;}
+    .planner-content-area { padding: 20px 25px; }
+    .planner-header { flex-direction: column; align-items: center; gap: 10px; }
+    .planner-main-title { font-size: 1.6rem; }
+     .daily-planner-section-horizontal { padding: 8px 0; margin-bottom: 20px; }
+     .day-item-horizontal { gap: 4px; flex-basis: calc(33% - 10px); justify-content: center;}
+     .day-label { font-size: 0.8rem; }
+     .planner-section-header { font-size: 0.8rem; padding: 8px 12px; }
+     .planner-section-content { padding: 10px 15px; }
+     .goals-list, .checklist { font-size: 0.9rem; }
+     .planner-table th, .planner-table td { font-size: 0.75rem; padding: 5px 6px; }
+     .planner-table .col-due { width: 75px; }
+ }
