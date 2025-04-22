@@ -146,3 +146,14 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 CORS_ALLOW_ALL_ORIGINS = True
 CORS_ALLOW_CREDENTIALS = True
+
+
+# CELERY_BROKER_URL = 'redis://localhost:6379/0'
+# CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+# CELERY_BEAT_SCHEDULE = {
+#     'decrease-pet-happiness-every-15-minutes': {
+#         'task': 'api.tasks.decrease_pet_happiness',
+#         'schedule': 900,  # 15 minutes in seconds
+#     },
+# }

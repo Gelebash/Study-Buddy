@@ -71,14 +71,15 @@ body.notebook-body {
 }
 
 .notebook-list-item {
-    padding: 8px 10px; /* Slightly reduced padding */
-    font-size: 0.85rem; color: #495057; cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 0.85rem; color: #495057;
     border-bottom: 1px solid #e9ecef; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     transition: background-color 0.15s ease, border-left 0.15s ease, padding-left 0.15s ease;
     border-left: 3px solid transparent;
-    display: flex; /* <<< Use Flex for controls */
-    justify-content: space-between; /* <<< Push text left, controls right */
-    align-items: center; /* <<< Vertically align text and controls */
 }
 .notebook-list-item:last-child { border-bottom: none; }
 /* Hover styles */
@@ -86,7 +87,10 @@ body.notebook-body {
 .sections-column .notebook-list-item:not(.active):hover { background-color: #e9ecef; }
 .pages-column .notebook-list-item:not(.active):hover { background-color: #f1f3f5; }
 /* Active styles */
-.notebook-list-item.active { background-color: #f8bbd0; color: #ad1457; font-weight: 600; border-left-color: #e91e63; padding-left: 7px; /* Adjust padding */ }
+.notebook-list-item.active {
+    background-color: #e3f2fd;
+    color: #ad1457; font-weight: 600; border-left-color: #e91e63; padding-left: 7px; /* Adjust padding */
+}
 .notebook-list-item.active:hover { background-color: #f8bbd0; }
 
 .notebook-list-item .item-text {
@@ -111,14 +115,17 @@ body.notebook-body {
     opacity: 1; /* Show controls on hover */
 }
 .delete-button {
-    background: none; border: none; padding: 0 3px; cursor: pointer;
-    color: #e91e63; /* Pink delete button */
-    font-size: 1.1rem; /* Control x size */
-    line-height: 1; font-weight: bold;
-    transition: color 0.2s ease;
+    opacity: 0;
+    background: none;
+    border: none;
+    color: #ff4444;
+    cursor: pointer;
+    padding: 0 4px;
+    font-size: 18px;
 }
-.delete-button:hover { color: #c2185b; /* Darker pink hover */}
-
+.notebook-list-item:hover .delete-button {
+    opacity: 1;
+}
 
 /* Content Column Styling */
 .content-header {

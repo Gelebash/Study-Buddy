@@ -63,6 +63,9 @@ body.home-body, html {
     width: 100%;
     max-width: 350px; /* Control max width of button column */
     margin-top: 15px;
+    max-height: 60vh;         /* Limit height to 60% of viewport */
+    overflow-y: auto;         /* Enable vertical scrolling if needed */
+    padding-bottom: 10px;     /* Space for last button */
 }
 
 .home-button {
