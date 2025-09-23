@@ -45,8 +45,8 @@ cd backend
 
 # Create and activate virtual environment
 python -m venv env
-source env/Scripts/activate  # Windows
-source env/bin/activate     # Unix/macOS
+env\Scripts\activate  # Windows
+env/bin/activate     # Unix/macOS
 
 # Install dependencies
 pip install -r requirements.txt
@@ -132,11 +132,3 @@ Study-Buddy/
 3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
 4. Push to the branch (`git push origin feature/AmazingFeature`)
 5. Open a Pull Request
-
-## License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## Project Management
-
-Track project progress on [Jira](https://gelebash.atlassian.net/jira/software/projects/SCRUM/boards/1)
