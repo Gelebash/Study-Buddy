@@ -1,12 +1,19 @@
+// Import statements
 import React, { useState, useEffect } from 'react';
 import '../styles/BuddyPage.css';
 import BuddyNavBar from '../components/BuddyNavBar';
 import api from '../api';
 import { FaPaw } from 'react-icons/fa';
 
+// Dictionary mapping pet types to emoji icons
 const petIcons = { Cat: "🐱", Fish: "🐠", Turtle: "🐢", Dog: "🐶", Bunny: "🐰", Hamster: "🐹", Reptile: "🦎", Default: "🐾" };
 
+/**
+ * BuddyPage Component
+ * Displays and manages a pet identification card with editable fields
+ */
 function BuddyPage() {
+    // State for storing pet and owner information
     const [buddyInfo, setBuddyInfo] = useState({
         firstName: '',
         middleName: '',
@@ -18,14 +25,20 @@ function BuddyPage() {
         petHappiness: 50,
         petBirthDate: null
     });
+
+    // State for error handling and field editing
     const [error, setError] = useState('');
     const [editingField, setEditingField] = useState(null);
     const [tempValue, setTempValue] = useState('');
 
+    // Fetch buddy info on component mount
     useEffect(() => {
         fetchBuddyInfo();
     }, []);
 
+    /**
+     * Fetches buddy information from the API
+     */
     const fetchBuddyInfo = async () => {
         try {
             const response = await api.get('/api/buddy/');
@@ -37,16 +50,28 @@ function BuddyPage() {
         }
     };
 
+    /**
+     * Initiates editing mode for a field
+     * @param {string} field - The field name to edit
+     * @param {string} value - The current value of the field
+     */
     const handleEdit = (field, value) => {
         setEditingField(field);
         setTempValue(value || '');
     };
 
+    /**
+     * Cancels the current edit operation
+     */
     const handleCancel = () => {
         setEditingField(null);
         setTempValue('');
     };
 
+    /**
+     * Saves the edited field value to the backend
+     * @param {string} field - The field name to update
+     */
     const handleSave = async (field) => {
         try {
             await api.patch('/api/buddy/1/update/', { [field]: tempValue });
@@ -60,6 +85,12 @@ function BuddyPage() {
         }
     };
 
+    /**
+     * Renders an editable field with label
+     * @param {string} label - Display label for the field
+     * @param {string} field - Field identifier
+     * @param {string} value - Current field value
+     */
     const renderEditableField = (label, field, value) => {
         return (
             <div className="id-field-row">
@@ -90,6 +121,7 @@ function BuddyPage() {
         );
     };
 
+    // Get the appropriate pet icon based on the selected pet type
     const petIcon = petIcons[buddyInfo.favoritePet] || petIcons.Default;
 
     return (
