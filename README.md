@@ -69,21 +69,6 @@ npm install
 npm run dev
 ```
 
-## Environment Variables
-
-### Frontend (.env)
-```
-VITE_API_URL=http://127.0.0.1:8000
-```
-
-### Backend (.env)
-Copy `.env.example` to `.env` and adjust values as needed:
-```
-SECRET_KEY=your-secret-key
-DEBUG=True
-ALLOWED_HOSTS=localhost,127.0.0.1
-```
-
 ## Running the Application
 
 1. Start the backend server:
